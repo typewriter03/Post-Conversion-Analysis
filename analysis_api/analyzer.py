@@ -2,7 +2,7 @@ import random
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from django.db.models import Avg
 
-# --- Heuristic & Keyword Definitions ---
+
 
 # Keywords to detect if AI is "giving up"
 FALLBACK_PHRASES = [
@@ -63,7 +63,7 @@ def check_resolution(all_messages_text):
     if not all_messages_text:
         return False
         
-    # Check the last message regardless of sender
+    
     last_message = all_messages_text[-1].lower()
     for phrase in RESOLUTION_PHRASES:
         if phrase in last_message:
@@ -71,9 +71,7 @@ def check_resolution(all_messages_text):
     return False
 
 def check_escalation(user_messages_text):
-    """
-    Checks if the user tried to escalate to a human.
-    """
+    
     for message in user_messages_text:
         for phrase in ESCALATION_PHRASES:
             if phrase in message.lower():
@@ -81,9 +79,7 @@ def check_escalation(user_messages_text):
     return False
 
 def count_fallbacks(ai_messages_text):
-    """
-    Counts how many times the AI used a fallback phrase.
-    """
+    
     count = 0
     for message in ai_messages_text:
         for phrase in FALLBACK_PHRASES:
@@ -92,10 +88,7 @@ def count_fallbacks(ai_messages_text):
     return count
 
 def mock_complex_scores():
-    """
-    Mocks scores for complex parameters that would require advanced NLU.
-    Returns a dictionary of scores (0-5 scale).
-    """
+    
     return {
         'clarity_score': round(random.uniform(3.5, 5.0), 2),
         'relevance_score': round(random.uniform(3.0, 4.8), 2),
@@ -105,19 +98,14 @@ def mock_complex_scores():
     }
 
 def mock_response_time(messages):
-    """
-    Mocks the average response time as allowed in the PDF
-    """
+    
     if len(messages) < 2:
         return 0.0
     # Mock an average response time in seconds
     return round(random.uniform(5.0, 45.0), 2)
 
 def calculate_overall_score(scores_dict):
-    """
-    Computes a final User Satisfaction Score.
-    We'll average the key quality and interaction scores.
-    """
+    
     key_scores = [
         scores_dict.get('clarity_score', 0),
         scores_dict.get('relevance_score', 0),
@@ -126,7 +114,7 @@ def calculate_overall_score(scores_dict):
         scores_dict.get('empathy_score', 0)
     ]
     
-    # Give sentiment a weight
+    
     sentiment = scores_dict.get('sentiment', 'neutral')
     if sentiment == 'positive':
         key_scores.append(5.0)
@@ -135,7 +123,7 @@ def calculate_overall_score(scores_dict):
     else: # negative
         key_scores.append(1.0)
 
-    # Give resolution a weight
+    
     if scores_dict.get('resolution'):
         key_scores.append(5.0)
     else:
@@ -157,7 +145,7 @@ def analyze_conversation(conversation_obj):
     messages = conversation_obj.messages.all().order_by('created_at')
     
     if not messages.exists():
-        return {} # No data to analyze
+        return {} 
 
     # Separate messages for analysis
     user_messages_text = [msg.text for msg in messages if msg.sender == 'user']

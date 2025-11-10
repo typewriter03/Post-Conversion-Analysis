@@ -12,19 +12,19 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.NOTICE('Starting analysis of new chats...'))
 
-        # Find conversation IDs that have already been analyzed
+        
         analyzed_convo_ids = ConversationAnalysis.objects.values_list('conversation_id', flat=True)
 
-        # Find conversations that are NOT in that list
+        
         new_conversations = Conversation.objects.exclude(id__in=analyzed_convo_ids)
 
         count = 0
         for convo in new_conversations:
             try:
-                # Run the analysis logic from Phase 2
+                
                 analysis_data = analyze_conversation(convo)
 
-                # Save the new analysis object
+                
                 ConversationAnalysis.objects.create(
                     conversation=convo,
                     **analysis_data

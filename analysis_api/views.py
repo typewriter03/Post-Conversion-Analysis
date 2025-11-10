@@ -12,29 +12,24 @@ from .serializers import (
 from .analyzer import analyze_conversation
 
 class ConversationUploadView(generics.CreateAPIView):
-    """
-    Endpoint: POST /api/conversations/
-    Accepts a JSON list of chat messages and stores them.
-    [cite: 29, 48]
-    """
+    
     serializer_class = ConversationUploadSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         conversation = serializer.save()
-        
-        # Return the basic info of the created conversation
+
+        # Trigger analysis for the new conversation
+        analyze_conversation(conversation)
+
         return Response(
             {"message": "Conversation uploaded successfully", "conversation_id": conversation.id},
             status=status.HTTP_201_CREATED
         )
 
 class ReportListView(generics.ListAPIView):
-    """
-    Endpoint: GET /api/reports/
-    Lists all conversation analysis results. 
-    """
+    
     queryset = Conversation.objects.all().prefetch_related('messages', 'analysis')
     serializer_class = ConversationReportSerializer
 
@@ -54,7 +49,7 @@ class AnalysisTriggerView(APIView):
             
         conversation = get_object_or_404(Conversation, id=conversation_id)
 
-        # Run the analysis logic from Phase 2
+        
         try:
             analysis_data = analyze_conversation(conversation)
         except Exception as e:
@@ -63,8 +58,7 @@ class AnalysisTriggerView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
-        # Save the analysis results to the database
-        # update_or_create handles if analysis already exists
+        
         analysis_obj, created = ConversationAnalysis.objects.update_or_create(
             conversation=conversation,
             defaults=analysis_data
